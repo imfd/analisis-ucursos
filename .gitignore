@@ -1,0 +1,4 @@
+*.zip
+*.sql
+.DS_Store
+.ipynb_checkpoints

@@ -36,6 +36,37 @@ punct = string.punctuation + '“' + '”' + '¿' + '⋆' + '�'
 URL_REGEX = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 DECIMAL_REGEX = '[0-9]+,[0-9]+'
 
+def tokenize_pipe(docs, nlp, include_stopwords=False,
+                  include_punctuation=False,
+                  include_quotes=False,
+                  lemmatize=False):
+    for tokens in nlp.pipe(docs):
+        processed = []
+        for token in tokens:
+            word = None
+            if token.is_digit or re.match(DECIMAL_REGEX, token.lower_):
+                word = "NUMBER"
+            elif re.match(URL_REGEX, token.lower_):
+                word = "URL"
+            elif token.is_stop or token.lower_ in sw:
+                word = "STOPWORD" if include_stopwords else None
+            elif (token.is_punct or token.lower_ in punct) and not token.is_quote:
+                word = "PUNCT" if include_punctuation else None
+            elif token.is_quote:
+                word = "QUOTE" if include_quotes else None
+            else:
+                if lemmatize:
+                    word = token.lemma_
+                else:
+                    word = token.text
+                word = word.lower()
+                word = word.strip()
+                word = preprocessing.remove_accents(word)
+                word = word if word != '' else None
+
+            if word:
+                processed.append(word)
+        yield processed
 
 def tokenize(doc,
              nlp,
